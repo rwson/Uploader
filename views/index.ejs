@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Uploader.js</title>
+    <link rel='stylesheet' href='stylesheets/style.css' />
+    <link rel='stylesheet' href='stylesheets/Uploader.css'>
+  </head>
+  <body>
+    <h1>Uploader.js</h1>
+
+	<div id="uploadHTML5" class="upload-html5"></div>
+
+	<script type="text/javascript" src="js/Uploader.js"></script>
+	<script type="text/javascript">
+		
+		window.onload = function() {
+
+			var div = document.querySelector("#uploadHTML5");
+
+			Uploader("#uploadHTML5", {
+				"uploadUrl": "/upload/html5"
+			});
+		};
+
+	</script>
+  </body>
+</html>

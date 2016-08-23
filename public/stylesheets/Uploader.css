@@ -1,0 +1,7 @@
+.upload-html5 {
+    width: 500px;
+    height: 200px;
+    border-radius: 10px;
+    border: 2px dotted #ccc;
+    margin: 10px auto;
+}
