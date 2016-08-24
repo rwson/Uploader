@@ -121,3 +121,5 @@ JavaScript:
 			console.log(ev);	
 		}
 	});
+
+本插件几乎不带内置CSS,可以通过配置项中的styleClass和tipClass传入具体的css类名,根据UI出的设计稿自行定义样式😄
