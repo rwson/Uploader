@@ -54,6 +54,7 @@
 				"styleClass": ["upload-html5"],
 				"tipClass": ["upload-tip"],
 				"onSuccess": function(res) {
+					console.log(res);
 					res.files.forEach(function(item) {
 						var img = document.createElement("img");
 						img.src = item.url;

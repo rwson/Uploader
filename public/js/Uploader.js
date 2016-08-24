@@ -19,10 +19,11 @@
 
 })(window, function(root, undefined) {
 
+    //  Object.prototype
     var _type2 = {};
     var doc = document;
 
-    //  替换iframe中的<pre ...></pre>标签
+    //  替换iframe中文本外层的<pre ...></pre>标签
     var preStart = /^\<pre.*?\>/i;
     var preEnd = /\<\/pre\>$/i;
 
@@ -40,14 +41,25 @@
         "onTimeout": function() {}
     };
 
+    /**
+     * @param {String} el  css选择器
+     * @param {Object} opt 配置参数
+     * @constructor
+     */
     function Uploader(el, opt) {
         return new Uploader.fn.init(el, opt);
     }
 
     Uploader.fn = Uploader.prototype = {
 
+        //  modify the constructor point
         "constructor": Uploader,
 
+        /**
+         * initialize function
+         * @param {String} el  css选择器
+         * @param {Object} opt 配置参数
+         */
         "init": function(el, opt) {
             this.el = doc.querySelector(el);
             this.elSelector = el;
@@ -67,6 +79,7 @@
             }
         },
 
+        //  HTML5 type upload
         "_HTML5Upload": function() {
             var _self = this,
                 _el = _self.el,
@@ -78,7 +91,6 @@
                 _self.cfg.styleClass = _typeOf(_self.cfg.styleClass) === "Array" ? _self.cfg.styleClass : [_self.cfg.styleClass];
                 _el.setAttribute("class", (_el.class || "") + " " + _self.cfg.styleClass.join(" "));
             }
-
             if (_self.cfg.tipClass) {
                 _self.cfg.tipClass = _typeOf(_self.cfg.tipClass) === "Array" ? _self.cfg.tipClass : [_self.cfg.tipClass];
                 tipClass = _self.cfg.tipClass.join(" ");
@@ -138,6 +150,7 @@
                     _self.cfg.onStart();
                 }
 
+                //  读取文件,加入form
                 for (var i = 0, len = files.length; i < len; i++) {
                     form.append("file" + i, files[i], files[i].name);
                 }
@@ -145,7 +158,6 @@
 
                 //  XMLHttpRequest的readyState为完成状态
                 xhr.onreadystatechange = function() {
-                    console.log("onreadystatechange");
                     if (xhr.readyState === 4) {
                         if (xhr.status === 200 && _typeOf(_self.cfg.onSuccess) === "Function") {
                             _self.cfg.onSuccess(JSON.parse(xhr.responseText));
@@ -155,16 +167,14 @@
                     }
                 };
 
-                //  四个阶段
+                //  XHR2中的部分新特性
                 xhr.onprogress = function(ev) {
-                    console.log("onprogress");
                     if (_typeOf(_self.cfg.onProgress) === "Function") {
                         _self.cfg.onProgress(ev);
                     }
                 };
 
                 xhr.onload = function(ev) {
-                    console.log("onload");
                     if (_typeOf(_self.cfg.onLoad) === "Function") {
                         _self.cfg.onLoad(ev);
                     }
@@ -180,6 +190,7 @@
             var _self = this;
             var iframe, form, timeout, isOvertime, timeoutOver, res;
 
+            //  创建上传表单,修改this.el的引用
             form = _createForm(iframe, _self.el, _self.cfg.uploadUrl, _self.cfg.data, _self.cfg.styleClass);
             _self.el = form.querySelector(_self.elSelector);
 
@@ -279,6 +290,7 @@
         form.method = "POST";
         form.action = url;
 
+        //  处理自定义数据
         if (_typeOf(data) === "Object") {
             for (var i in data) {
                 dataFiled = doc.createElement("input");
@@ -292,6 +304,7 @@
         form.appendChild(fragement);
         parent.appendChild(form);
 
+        //  处理自定义样式
         if (cssClass) {
             cssClass = _typeOf(cssClass) === "Array" ? cssClass : [cssClass];
             parent.setAttribute("class", (parent.class || "") + " " + cssClass.join(" "));
@@ -329,10 +342,12 @@
         return res;
     }
 
+    //  get Object Prottype Class name
     function _typeOf(obj) {
         return _type2.toString.call(obj).slice(8, -1);
     }
 
+    //  merge the second Object's attributes to first Object's copy
     function _merge(obj1, obj2) {
         var res = _copy(obj1);
         for (var i in obj2) {
@@ -380,6 +395,7 @@
         return res;
     }
 
+    //  生成uId
     function _uId() {
         return Math.random().toString(16).slice(2);
     }

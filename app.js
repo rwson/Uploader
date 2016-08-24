@@ -86,6 +86,7 @@ app.all("/upload/iframe", function(req, res, next) {
         }
         res.send(200, {
             "code": 200,
+            "dataRecived": fields,
             "url": targetPath
         });
     });
@@ -96,6 +97,7 @@ app.all("/upload/html5", function(req, res, next) {
         extName = "",
         filePath = "",
         targetPath = "",
+        dataRecived = {},
         files = [];
     form.encoding = "utf-8";
     form.keepExtensions = true;
@@ -122,14 +124,13 @@ app.all("/upload/html5", function(req, res, next) {
         if (err) {
             res.send(500, err);
         }
-
-        console.log(files);
-
+        dataRecived = fields;
     });
 
     form.on("end", function() {
         res.send(200, {
-            "files": files
+            "files": files,
+            "dataRecived": dataRecived
         });
     });
 

@@ -80,13 +80,12 @@ onStart | 开始上传回调 | Function
 onProgress | 上传中回调 | Function
 onSuccess | 上传成功回调 | Function
 onError | 上传失败回调 | Function
-onTimeout | 上传超时回调 | Function
 onLoad | 完成回调 | Function
 
 注:
 
 1. data最后会被当成普通表单提交(key对应input的name属性,value对应input的值)提交,一旦data不为一个空对象,则需要后端来接收,否则没有意义
-
+2.相关回调执行顺序:onStart -> onProgress -> onSuccess/onError -> onLoad
 
 完整的调用例子:
 
