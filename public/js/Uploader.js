@@ -24,17 +24,19 @@
 
     //  替换iframe中的<pre ...></pre>标签
     var preStart = /^\<pre.*?\>/i;
-    var preEnd =  /\<\/pre\>$/i;
+    var preEnd = /\<\/pre\>$/i;
 
     var _defultCfg = {
         "type": "HTML5", // HTML5、ajax/iframe、form
         "draggable": true, //   support drag & drop to upload, only support "HTML5" mode
         "uploadUrl": "/upload",
         "data": {},
+        "timeout": -1,
         "onStart": function() {},
         "onProgress": function() {},
         "onSuccess": function() {},
-        "onAboard": function() {}
+        "onError": function() {},
+        "onTimeout": function() {}
     };
 
     function Uploader(el, opt) {
@@ -47,6 +49,7 @@
 
         "init": function(el, opt) {
             this.el = doc.querySelector(el);
+            this.elSelector = el;
             this.cfg = _merge(_defultCfg, opt);
             switch (this.cfg.type) {
                 case "HTML5":
@@ -137,17 +140,45 @@
         //  iframe方式的上传
         "_iframeUpload": function() {
             var _self = this;
-            var iframe, form, timeout, res;
+            var iframe, form, timeout, isOvertime, timeoutOver, res;
+
+            form = _createForm(iframe, _self.el, _self.cfg.uploadUrl, _self.cfg.data);
+            _self.el = form.querySelector(_self.elSelector);
 
             //  给文件选择框绑定change事件
             _self.el.onchange = function() {
+
+                isOvertime = false;
                 iframe = _createIframe();
-                form = _createForm(iframe, _self.el, _self.cfg.uploadUrl, _self.cfg.data);
                 form.submit();
+
+                //  开始上传
+                if(_typeOf(_self.cfg.onStart)) {
+                    _self.cfg.onStart();
+                }
+
+                //  指定了超时时间
+                if(_self.cfg.timeout > 0) {
+                    timeoutOver = setTimeout(function() {
+                        clearTimeout(timeoutOver);
+                        isOvertime = true;
+
+                        if(_typeOf(_self.cfg.onTimeout) === "Function") {
+                            _self.cfg.onTimeout();
+                        }
+
+                    }, _self.cfg.timeout);
+                }
 
                 //  后端响应成功回调
                 iframe.onload = function() {
-                    
+
+                    //  已经超时了,就不往下走
+                    if(isOvertime) {
+                        return;
+                    }
+
+                    clearTimeout(timeoutOver);
                     res = _parseToObject(_getFrameContent(iframe).responseText);
                     if (_typeOf(_self.cfg.onSuccess) === "Function") {
                         _self.cfg.onSuccess(res);
@@ -156,22 +187,27 @@
                     timeout = setTimeout(function() {
                         clearTimeout(timeout);
                         doc.body.removeChild(iframe);
-                        doc.body.removeChild(form);
                     }, 300);
                 };
 
                 //  后端响应失败回调
                 iframe.onerror = function() {
 
+
+                    //  已经超时了,就不往下走
+                    if(isOvertime) {
+                        return;
+                    }
+
+                    clearTimeout(timeoutOver);
                     res = _parseToObject(_getFrameContent(iframe).responseText);
                     if (_typeOf(_self.cfg.onSuccess) === "Function") {
                         _self.cfg.onError(res);
                     }
-                    
+
                     timeout = setTimeout(function() {
                         clearTimeout(timeout);
                         doc.body.removeChild(iframe);
-                        doc.body.removeChild(form);
                     }, 300);
                 };
             };
@@ -190,12 +226,14 @@
         return iframe;
     }
 
-    //  创建一个隐藏表单提交
+    //  创建一个表单提交,把原来的file克隆过来,并且删除原来的
     function _createForm(frame, fileElement, url, data) {
         var form = doc.createElement("form");
         var fragement = doc.createDocumentFragment();
         var fileFiled = fileElement.cloneNode(true);
         var dataFiled = null;
+
+        fileElement.parentNode.removeChild(fileElement);
 
         fragement.appendChild(fileFiled);
         form.target = "uploadIframe";
@@ -208,39 +246,38 @@
                 dataFiled = doc.createElement("input");
                 dataFiled.name = i;
                 dataFiled.value = data[i];
+                dataFiled.type = "hidden";
                 fragement.appendChild(dataFiled);
             }
         }
-
-        form.style.cssText = "width: 0;height: 0; opacity: 0; position: absolute; z-index: -1;left: -999em; top: -999em;"
 
         form.appendChild(fragement);
         doc.body.appendChild(form);
         return form;
     }
 
-    //  获取iframe中的内容文本内容
+    //  获取iframe中的文本内容
     function _getFrameContent(iframe) {
-        var xml = {};
+        var res = {};
         try {
             if (iframe.contentWindow) {
-                xml.responseText =iframe.contentWindow.document.body ?iframe.contentWindow.document.body.innerHTML : null;
-                xml.responseXML =iframe.contentWindow.document.XMLDocument ?iframe.contentWindow.document.XMLDocument :iframe.contentWindow.document;
+                res.responseText = iframe.contentWindow.document.body ? iframe.contentWindow.document.body.innerHTML : null;
+                res.responseXML = iframe.contentWindow.document.XMLDocument ? iframe.contentWindow.document.XMLDocument : iframe.contentWindow.document;
 
             } else if (iframe.contentDocument) {
-                xml.responseText =iframe.contentDocument.document.body ?iframe.contentDocument.document.body.innerHTML : null;
-                xml.responseXML =iframe.contentDocument.document.XMLDocument ?iframe.contentDocument.document.XMLDocument :iframe.contentDocument.document;
+                res.responseText = iframe.contentDocument.document.body ? iframe.contentDocument.document.body.innerHTML : null;
+                res.responseXML = iframe.contentDocument.document.XMLDocument ? iframe.contentDocument.document.XMLDocument : iframe.contentDocument.document;
             }
         } catch (e) {
             throw e;
         }
-        return xml;
+        return res;
     }
 
     //  把iframe文本内容转换成JSON输出
     function _parseToObject(str) {
         var res;
-        if(_typeOf(str) === "Null") {
+        if (_typeOf(str) === "Null") {
             res = {};
         } else {
             res = JSON.parse(str.replace(preStart, "").replace(preEnd, ""));

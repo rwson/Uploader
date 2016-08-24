@@ -8,7 +8,9 @@
   <body>
     <h1>Uploader.js</h1>
 
-	<input type="file" name="file" id="Uploader" />
+	<div>
+		<input type="file" name="file" id="Uploader" />
+	</div>
 
 	<script type="text/javascript" src="js/Uploader.js"></script>
 	<script type="text/javascript">
@@ -17,11 +19,24 @@
 			Uploader("#Uploader", {
 				"uploadUrl": "/upload/iframe",
 				"type": "iframe",
+				"data": {
+					"test": "1111",
+					"maxSize": 1000
+				},
+				"timeout": 3000,
 				"onSuccess": function(res) {
 					console.log(res);
+					var img = new Image();
+					img.src = res.url;
+					img.onload = function() {
+						document.body.appendChild(img);
+					};
 				},
 				"onError": function(ex) {
 					console.log(ex);
+				},
+				"onTimeout": function(){
+					alert("超时啦!");
 				}
 			});
 		};

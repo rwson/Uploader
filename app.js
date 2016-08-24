@@ -22,23 +22,16 @@ app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.get('/index', function (req, res, next) {
+app.get('/index', function(req, res, next) {
     res.render("index");
 });
 
-app.all("/upload/iframe", function (req, res, next) {
-
-
-	res.send(200, {
-		"status": 1,
-		"name": "upload/test.jpg"
-	});
-	return;
+app.all("/upload/iframe", function(req, res, next) {
 
     var form = new formidable.IncomingForm(),
         extName = "",
@@ -48,7 +41,7 @@ app.all("/upload/iframe", function (req, res, next) {
     form.keepExtensions = true;
     form.maxFieldsSize = 2 * 1024 * 1024;
 
-    form.parse(req, function (err, fields, files) {
+    form.parse(req, function(err, fields, files) {
         if (err) {
             res.send(500, err);
         }
@@ -71,7 +64,7 @@ app.all("/upload/iframe", function (req, res, next) {
                     "code": 400,
                     "msg": "上传失败!请检查文件类型!"
                 });
-                return;
+                break;
         }
 
         if (!fs.existsSync(distPath)) {
@@ -88,7 +81,7 @@ app.all("/upload/iframe", function (req, res, next) {
             var inputStream = fs.createReadStream(filePath),
                 outputStream = fs.createWriteStream(targetPath);
             inputStream.pipe(outputStream);
-            inputStream.on("end", function () {
+            inputStream.on("end", function() {
                 fs.unlink(filePath);
             });
         }
@@ -99,12 +92,17 @@ app.all("/upload/iframe", function (req, res, next) {
     });
 });
 
-app.use(function (req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+app.use(function(req, res, next) {
+    try {
+        res.sendfile(path.join(__dirname, req.path));
+    } catch (ex) {
+        var err = new Error('Not Found');
+        console.log(req.path);
+        err.status = 404;
+        next(err);
+    }
 });
 
-app.listen(app.get('port'), function () {
+app.listen(app.get('port'), function() {
     console.log("🌐  start up at: http://localhost:" + app.get('port'));
 });
