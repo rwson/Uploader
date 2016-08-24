@@ -12,12 +12,13 @@
 		<input type="file" name="file" id="Uploader" />
 	</div>
 
-	<div></div>
+	<div id="uploadHTML5"></div>
 
 	<script type="text/javascript" src="js/Uploader.js"></script>
 	<script type="text/javascript">
 		
 		window.onload = function() {
+			
 			Uploader("#Uploader", {
 				"uploadUrl": "/upload/iframe",
 				"type": "iframe",
@@ -41,6 +42,34 @@
 					alert("超时啦!");
 				}
 			});
+
+
+			Uploader("#uploadHTML5", {
+				"uploadUrl": "/upload/html5",
+				"type": "HTML5",
+				"data": {
+					"test": "1111",
+					"maxSize": 1000
+				},
+				"styleClass": ["upload-html5"],
+				"tipClass": ["upload-tip"],
+				"timeout": 3000,
+				"enableDrag": true,
+				"onSuccess": function(res) {
+					res.files.forEach(function(item) {
+						var img = document.createElement("img");
+						img.src = item.url;
+						document.body.appendChild(img);
+					});
+				},
+				"onError": function(ex) {
+					console.log(ex);
+				},
+				"onTimeout": function(){
+					alert("超时啦!");
+				}
+			});
+
 		};
 
 	</script>

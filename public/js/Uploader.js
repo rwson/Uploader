@@ -27,12 +27,12 @@
     var preEnd = /\<\/pre\>$/i;
 
     var _defultCfg = {
-        "type": "HTML5",        //   HTML5、iframe
-        "draggable": true,      //   support drag & drop to upload, only support "HTML5" mode
+        "type": "HTML5", //   HTML5、iframe
+        "draggable": true, //   support drag & drop to upload, only support "HTML5" mode
         "uploadUrl": "/upload", //   server address
-        "data": {},             //   custom data
-        "timeout": -1,          //   time
-        "styleClass": [],       //   customCss class
+        "data": {}, //   custom data
+        "timeout": -1, //   time
+        "styleClass": [], //   customCss class
         "onStart": function() {},
         "onProgress": function() {},
         "onSuccess": function() {},
@@ -70,15 +70,25 @@
         "_HTML5Upload": function() {
             var _self = this,
                 _el = _self.el,
-                tip;
+                tip = null,
+                tipClass = "";
 
-            _el.classList.add("upload-html5");
+            //  处理自定义样式
+            if (_self.cfg.styleClass) {
+                _self.cfg.styleClass = _typeOf(_self.cfg.styleClass) === "Array" ? _self.cfg.styleClass : [_self.cfg.styleClass];
+                _el.setAttribute("class", (_el.class || "") + " " + _self.cfg.styleClass.join(" "));
+            }
+
+            if (_self.cfg.tipClass) {
+                _self.cfg.tipClass = _typeOf(_self.cfg.tipClass) === "Array" ? _self.cfg.tipClass : [_self.cfg.tipClass];
+                tipClass = _self.cfg.tipClass.join(" ");
+            }
 
             //  拖入上传框
             _el.ondragenter = function(ev) {
                 tip = doc.createElement("p");
-                tip.classList.add("upload-html5-tip");
                 tip.innerHTML = "松开鼠标即可上传";
+                tip.setAttribute("class", tipClass);
                 _self.el.appendChild(tip);
                 ev.preventDefault();
                 return false;
@@ -87,12 +97,14 @@
             //  在上传框区域内不松开鼠标
             _el.ondragover = function(ev) {
                 ev.preventDefault();
-            }
+                return false;
+            };
 
             //  物体离开上传框
             _el.ondragleave = function(ev) {
                 if (tip) {
                     _self.el.removeChild(tip);
+                    tip = null;
                 }
                 ev.preventDefault();
                 return false;
@@ -100,36 +112,75 @@
 
             //  鼠标松手
             _el.ondrop = function(ev) {
-                ev = ev || event;
                 var files = ev.dataTransfer.files,
-                    fRead;
+                    file, xhr, form;
                 if (tip) {
                     _self.el.removeChild(tip);
+                    tip = null;
                 }
-                for (var i = 0, len = files.length; i < len; i++) {
-                    if (files[i].type) {
-                        fRead = new FileReader();
-                        fRead.readAsDataURL(files[i]);
-                        fRead.onload = function() {
-                            console.log(this.address);
-                        };
+
+                form = new FormData();
+
+                //  拼接自定义数据
+                if (_typeOf(_self.cfg.data) === "Object") {
+                    for (var i in _self.cfg.data) {
+                        form.append(i, _self.cfg.data[i]);
                     }
                 }
+
+                xhr = new XMLHttpRequest();
+                xhr.open("POST", _self.cfg.uploadUrl, true);
+                xhr.withCredentials = true;
+                xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+                //  开始上传
+                if (_typeOf(_self.cfg.onStart) === "Function") {
+                    _self.cfg.onStart();
+                }
+
+                for (var i = 0, len = files.length; i < len; i++) {
+                    form.append("file" + i, files[i], files[i].name);
+                }
+                xhr.send(form);
+
+                //  XMLHttpRequest的readyState为完成状态
+                xhr.onreadystatechange = function() {
+                    console.log("onreadystatechange");
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200 && _typeOf(_self.cfg.onSuccess) === "Function") {
+                            _self.cfg.onSuccess(JSON.parse(xhr.responseText));
+                        } else if (_typeOf(_self.cfg.onError) === "Function") {
+                            _self.cfg.onError(JSON.parse(xhr.responseText));
+                        }
+                    }
+                };
+
+                //  四个阶段
+                xhr.onprogress = function(ev) {
+                    console.log("onprogress");
+                    if (_typeOf(_self.cfg.onProgress) === "Function") {
+                        _self.cfg.onProgress(ev);
+                    }
+                };
+
+                xhr.onload = function(ev) {
+                    console.log("onload");
+                    if (_typeOf(_self.cfg.onLoad) === "Function") {
+                        _self.cfg.onLoad(ev);
+                    }
+                };
+
                 ev.preventDefault();
                 return false;
             };
         },
-
-        "_FormUpluad": function() {},
-
-        "_AjaxUpload": function() {},
 
         //  iframe方式的上传
         "_iframeUpload": function() {
             var _self = this;
             var iframe, form, timeout, isOvertime, timeoutOver, res;
 
-            form = _createForm(iframe, _self.el, _self.cfg.uploadUrl, _self.cfg.data);
+            form = _createForm(iframe, _self.el, _self.cfg.uploadUrl, _self.cfg.data, _self.cfg.styleClass);
             _self.el = form.querySelector(_self.elSelector);
 
             //  给文件选择框绑定change事件
@@ -140,17 +191,17 @@
                 form.submit();
 
                 //  开始上传
-                if(_typeOf(_self.cfg.onStart)) {
+                if (_typeOf(_self.cfg.onStart)) {
                     _self.cfg.onStart();
                 }
 
                 //  指定了超时时间
-                if(_self.cfg.timeout > 0) {
+                if (_self.cfg.timeout > 0) {
                     timeoutOver = setTimeout(function() {
                         clearTimeout(timeoutOver);
                         isOvertime = true;
 
-                        if(_typeOf(_self.cfg.onTimeout) === "Function") {
+                        if (_typeOf(_self.cfg.onTimeout) === "Function") {
                             _self.cfg.onTimeout();
                         }
 
@@ -161,7 +212,7 @@
                 iframe.onload = function() {
 
                     //  已经超时了,就不往下走
-                    if(isOvertime) {
+                    if (isOvertime) {
                         return;
                     }
 
@@ -180,9 +231,8 @@
                 //  后端响应失败回调
                 iframe.onerror = function() {
 
-
                     //  已经超时了,就不往下走
-                    if(isOvertime) {
+                    if (isOvertime) {
                         return;
                     }
 
@@ -240,11 +290,11 @@
         }
 
         form.appendChild(fragement);
-        parentNode.appendChild(form);
+        parent.appendChild(form);
 
-        if(cssClass) {
-            cssClass = _typeOf(cssClass) === "Array" ? cssClass ? [cssClass];
-            parentNode.class = parentNode.class + " " + cssClass.join(" ");
+        if (cssClass) {
+            cssClass = _typeOf(cssClass) === "Array" ? cssClass : [cssClass];
+            parent.setAttribute("class", (parent.class || "") + " " + cssClass.join(" "));
         }
 
         return form;
@@ -284,10 +334,50 @@
     }
 
     function _merge(obj1, obj2) {
+        var res = _copy(obj1);
         for (var i in obj2) {
-            obj1[i] = obj2[i];
+            res[i] = obj2[i];
         }
-        return obj1;
+        return res;
+    }
+
+    //  深层拷贝对象,传递对象类型参数时解除引用
+    function _copy(obj) {
+        var _type = _typeOf(obj),
+            _typeIn, res;
+        if (_type !== "Array" && _type !== "Object") {
+            return obj;
+        } else {
+            switch (_type) {
+                case "Array":
+                    res = [];
+                    for(var i = 0, len = obj.length;i < len; i ++) {
+                        _typeIn = _typeOf(obj[i]);
+                        if(_typeIn === "Array" || _typeIn === "Object") {
+                            _copy(obj[i]);
+                        } else {
+                            res.push(obj[i]);
+                        }
+                    }
+                    break;
+
+                case "Object":
+                    res = {};
+                    for(var i in obj) {
+                        _typeIn = _typeOf(obj[i]);
+                        if(_typeIn === "Array" || _typeIn === "Object") {
+                            _copy(obj[i]);
+                        } else {
+                            res[i] = obj[i];
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }            
+        }
+        return res;
     }
 
     function _uId() {

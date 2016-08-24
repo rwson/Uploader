@@ -1,12 +1,12 @@
 ### Uploader
 
-HTML5 and iframe上传插件
+HTML5和iframe上传插件
 
 <img src="Upload.png" width="100px" height="100px" />
 
 ---  
 
-- iframe
+- iframe(类Ajax)上传
 
 支持的所有参数:
 
@@ -21,7 +21,7 @@ cssClass | 控制样式的CSS类 | Array.&lt;String&gt;
 onStart | 开始上传回调 | Function
 onSuccess | 上传成功回调 | Function
 onError | 上传失败回调 | Function
-onTimeout | 上传失败回调 | Function
+onTimeout | 上传超时回调 | Function
 
 注:
 
@@ -65,6 +65,6 @@ JavaScript:
 		}
 	});
 
-- HTML5
-    
+- HTML5上传
+
 #### developing

@@ -32,7 +32,6 @@ app.get('/index', function(req, res, next) {
 });
 
 app.all("/upload/iframe", function(req, res, next) {
-
     var form = new formidable.IncomingForm(),
         extName = "",
         filePath = "",
@@ -90,6 +89,50 @@ app.all("/upload/iframe", function(req, res, next) {
             "url": targetPath
         });
     });
+});
+
+app.all("/upload/html5", function(req, res, next) {
+    var form = new formidable.IncomingForm(),
+        extName = "",
+        filePath = "",
+        targetPath = "",
+        files = [];
+    form.encoding = "utf-8";
+    form.keepExtensions = true;
+    form.maxFieldsSize = 2 * 1024 * 1024;
+    form.multiples = true;
+
+    if (!fs.existsSync(distPath)) {
+        fs.mkdirSync(distPath);
+    }
+
+    form.on("file", function(field, file) {
+        targetPath = path.join(distPath, file.name);
+        fs.rename(file.path, targetPath);
+        files.push({
+            url: targetPath
+        });
+    });
+
+    form.on("error", function(err) {
+        res.send(500, err);
+    });
+
+    form.parse(req, function(err, fields, files) {
+        if (err) {
+            res.send(500, err);
+        }
+
+        console.log(files);
+
+    });
+
+    form.on("end", function() {
+        res.send(200, {
+            "files": files
+        });
+    });
+
 });
 
 app.use(function(req, res, next) {
