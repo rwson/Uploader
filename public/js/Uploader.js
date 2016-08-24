@@ -27,11 +27,12 @@
     var preEnd = /\<\/pre\>$/i;
 
     var _defultCfg = {
-        "type": "HTML5", // HTML5、ajax/iframe、form
-        "draggable": true, //   support drag & drop to upload, only support "HTML5" mode
-        "uploadUrl": "/upload",
-        "data": {},
-        "timeout": -1,
+        "type": "HTML5",        //   HTML5、iframe
+        "draggable": true,      //   support drag & drop to upload, only support "HTML5" mode
+        "uploadUrl": "/upload", //   server address
+        "data": {},             //   custom data
+        "timeout": -1,          //   time
+        "styleClass": [],       //   customCss class
         "onStart": function() {},
         "onProgress": function() {},
         "onSuccess": function() {},
@@ -54,14 +55,6 @@
             switch (this.cfg.type) {
                 case "HTML5":
                     this._HTML5Upload();
-                    break;
-
-                case "form":
-                    this._FormUpluad();
-                    break;
-
-                case "ajax":
-                    this._AjaxUpload();
                     break;
 
                 case "iframe":
@@ -118,13 +111,7 @@
                         fRead = new FileReader();
                         fRead.readAsDataURL(files[i]);
                         fRead.onload = function() {
-                            ajax({
-                                "url": _self.cfg.uploadUrl,
-                                "type": "POST",
-                                "data": this.result,
-                                "context": _self,
-                                "beforeSend": function() {}
-                            });
+                            console.log(this.address);
                         };
                     }
                 }
@@ -227,13 +214,14 @@
     }
 
     //  创建一个表单提交,把原来的file克隆过来,并且删除原来的
-    function _createForm(frame, fileElement, url, data) {
+    function _createForm(frame, fileElement, url, data, cssClass) {
         var form = doc.createElement("form");
         var fragement = doc.createDocumentFragment();
+        var parent = fileElement.parentNode;
         var fileFiled = fileElement.cloneNode(true);
         var dataFiled = null;
 
-        fileElement.parentNode.removeChild(fileElement);
+        parent.removeChild(fileElement);
 
         fragement.appendChild(fileFiled);
         form.target = "uploadIframe";
@@ -252,7 +240,13 @@
         }
 
         form.appendChild(fragement);
-        doc.body.appendChild(form);
+        parentNode.appendChild(form);
+
+        if(cssClass) {
+            cssClass = _typeOf(cssClass) === "Array" ? cssClass ? [cssClass];
+            parentNode.class = parentNode.class + " " + cssClass.join(" ");
+        }
+
         return form;
     }
 

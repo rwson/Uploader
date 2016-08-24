@@ -17,6 +17,7 @@ type | 上传方法 | String(固定"iframe")
 uploadUrl | 服务器端用于处理上传请求的地址 | String
 data | 自定义数据 | Object
 timeout | 超时时间(毫秒,-1为不指定超时时间) | Number
+cssClass | 控制样式的CSS类 | Array.&lt;String&gt;
 onStart | 开始上传回调 | Function
 onSuccess | 上传成功回调 | Function
 onError | 上传失败回调 | Function
@@ -47,6 +48,7 @@ JavaScript:
 			"maxSize": 1000
 		},
 		"timeout": 3000,
+		"cssClass": ["upload-style1", "upload-style2"],
 		"onSuccess": function(res) {
 			console.log(res);
 			var img = new Image();
