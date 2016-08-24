@@ -24,7 +24,7 @@ onTimeout | 上传失败回调 | Function
 
 注:
 
-1. data最后会被当成input[type="hidden"](key对应input的name属性,value对应input的值)提交,一旦data不为一个空对象,则需要后端来接收,否则没有意义
+1. data最后会被当成input\[type="hidden"\](key对应input的name属性,value对应input的值)提交,一旦data不为一个空对象,则需要后端来接收,否则没有意义
 
 2. onTimeout和(onSuccess/onError)互斥,只能执行其中一个或两个
 
