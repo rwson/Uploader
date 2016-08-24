@@ -8,17 +8,21 @@
   <body>
     <h1>Uploader.js</h1>
 
-	<div id="uploadHTML5" class="upload-html5"></div>
+	<input type="file" name="file" id="Uploader" />
 
 	<script type="text/javascript" src="js/Uploader.js"></script>
 	<script type="text/javascript">
 		
 		window.onload = function() {
-
-			var div = document.querySelector("#uploadHTML5");
-
-			Uploader("#uploadHTML5", {
-				"uploadUrl": "/upload/html5"
+			Uploader("#Uploader", {
+				"uploadUrl": "/upload/iframe",
+				"type": "iframe",
+				"onSuccess": function(res) {
+					console.log(res);
+				},
+				"onError": function(ex) {
+					console.log(ex);
+				}
 			});
 		};
 

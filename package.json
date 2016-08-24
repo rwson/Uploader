@@ -12,6 +12,7 @@
     "debug": "~2.2.0",
     "ejs": "~2.3.3",
     "express": "~3.x",
-    "formidable": "^1.0.17"
+    "formidable": "^1.0.17",
+    "iframe-file-upload-middleware": "^0.1.10"
   }
 }
