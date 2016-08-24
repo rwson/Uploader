@@ -18,7 +18,7 @@
 	<script type="text/javascript">
 		
 		window.onload = function() {
-			
+
 			Uploader("#Uploader", {
 				"uploadUrl": "/upload/iframe",
 				"type": "iframe",
@@ -53,8 +53,6 @@
 				},
 				"styleClass": ["upload-html5"],
 				"tipClass": ["upload-tip"],
-				"timeout": 3000,
-				"enableDrag": true,
 				"onSuccess": function(res) {
 					res.files.forEach(function(item) {
 						var img = document.createElement("img");
@@ -65,8 +63,11 @@
 				"onError": function(ex) {
 					console.log(ex);
 				},
-				"onTimeout": function(){
-					alert("超时啦!");
+				"onProgress": function(ev) {
+					console.log(ev);
+				},
+				"onLoad": function(ev) {
+					console.log(ev);	
 				}
 			});
 
