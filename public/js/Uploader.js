@@ -280,37 +280,67 @@
         var fragement = doc.createDocumentFragment();
         var parent = fileElement.parentNode;
         var fileFiled = fileElement.cloneNode(true);
-        var dataFiled = null;
+        var parents = _loopToTopParent(fileElement);
+        var dataFiled = null, tagName, hasForm, formEl;
 
-        parent.removeChild(fileElement);
-
-        fragement.appendChild(fileFiled);
-        form.target = "uploadIframe";
-        form.enctype = "multipart/form-data";
-        form.method = "POST";
-        form.action = url;
-
-        //  处理自定义数据
-        if (_typeOf(data) === "Object") {
-            for (var i in data) {
-                dataFiled = doc.createElement("input");
-                dataFiled.name = i;
-                dataFiled.value = data[i];
-                dataFiled.type = "hidden";
-                fragement.appendChild(dataFiled);
+        for(var i = 0, len = parents.length; i < len; i ++) {
+            tagName = parents[i].tagName ? parents[i].tagName.toLowerCase() : "";
+            //  当前上传元素本身就被包含在form中
+            if(!!tagName && tagName === "form") {
+                hasForm = true;
+                formEl = parents[i];
+                break;
             }
         }
 
-        form.appendChild(fragement);
-        parent.appendChild(form);
+        if(hasForm) {
+            formEl.target = "uploadIframe";
+            formEl.enctype = "multipart/form-data";
+            formEl.method = "POST";
+            formEl.action = url;
 
-        //  处理自定义样式
-        if (cssClass) {
-            cssClass = _typeOf(cssClass) === "Array" ? cssClass : [cssClass];
-            parent.setAttribute("class", (parent.class || "") + " " + cssClass.join(" "));
+            //  处理自定义数据
+            if (_typeOf(data) === "Object") {
+                for (var i in data) {
+                    dataFiled = doc.createElement("input");
+                    dataFiled.name = i;
+                    dataFiled.value = data[i];
+                    dataFiled.type = "hidden";
+                    fragement.appendChild(dataFiled);
+                }
+                formEl.appendChild(fragement);
+            }
+            return formEl;
+        } else {
+            parent.removeChild(fileElement);
+
+            fragement.appendChild(fileFiled);
+            form.target = "uploadIframe";
+            form.enctype = "multipart/form-data";
+            form.method = "POST";
+            form.action = url;
+
+            //  处理自定义数据
+            if (_typeOf(data) === "Object") {
+                for (var i in data) {
+                    dataFiled = doc.createElement("input");
+                    dataFiled.name = i;
+                    dataFiled.value = data[i];
+                    dataFiled.type = "hidden";
+                    fragement.appendChild(dataFiled);
+                }
+            }
+
+            form.appendChild(fragement);
+            parent.appendChild(form);
+
+            //  处理自定义样式
+            if (cssClass) {
+                cssClass = _typeOf(cssClass) === "Array" ? cssClass : [cssClass];
+                parent.setAttribute("class", (parent.class || "") + " " + cssClass.join(" "));
+            }
+            return form;
         }
-
-        return form;
     }
 
     //  获取iframe中的文本内容
@@ -354,6 +384,28 @@
             res[i] = obj2[i];
         }
         return res;
+    }
+
+    //  loop parent node, return a array
+    function _loopToTopParent(child) {
+        var _res = [];
+        var _parentNode;
+        if(child.nodeType === 1) {
+            _parentNode = _getParentNode(child);
+            _res.push(_parentNode);
+            do {
+                _parentNode = _getParentNode(_parentNode)
+                _res.push(_parentNode);
+            } while(_parentNode.nodeType === 1)
+        }
+        return _res;
+    }
+
+    //  get parent node of a node
+    function _getParentNode(node) {
+        if(node.nodeType === 1) {
+            return node.parentNode;
+        }
     }
 
     //  深层拷贝对象,传递对象类型参数时解除引用
