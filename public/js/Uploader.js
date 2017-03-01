@@ -227,16 +227,22 @@
                         return;
                     }
 
-                    clearTimeout(timeoutOver);
-                    res = _parseToObject(_getFrameContent(iframe).responseText);
-                    if (_typeOf(_self.cfg.onSuccess) === "Function") {
-                        _self.cfg.onSuccess(res);
-                    }
+                    try {
+                        clearTimeout(timeoutOver);
+                        res = _parseToObject(_getFrameContent(iframe).responseText);
+                        if (_typeOf(_self.cfg.onSuccess) === "Function") {
+                            _self.cfg.onSuccess(res);
+                        }
 
-                    timeout = setTimeout(function() {
-                        clearTimeout(timeout);
-                        doc.body.removeChild(iframe);
-                    }, 300);
+                        timeout = setTimeout(function() {
+                            clearTimeout(timeout);
+                            doc.body.removeChild(iframe);
+                        }, 300);
+                    } catch (e) {
+                        if (_typeOf(_self.cfg.onError) === "Function") {
+                            _self.cfg.onError(res);
+                        }
+                    }
                 };
 
                 //  后端响应失败回调
@@ -247,16 +253,22 @@
                         return;
                     }
 
-                    clearTimeout(timeoutOver);
-                    res = _parseToObject(_getFrameContent(iframe).responseText);
-                    if (_typeOf(_self.cfg.onSuccess) === "Function") {
-                        _self.cfg.onError(res);
-                    }
+                    try {
+                        clearTimeout(timeoutOver);
+                        res = _parseToObject(_getFrameContent(iframe).responseText);
+                        if (_typeOf(_self.cfg.onError) === "Function") {
+                            _self.cfg.onError(res);
+                        }
 
-                    timeout = setTimeout(function() {
-                        clearTimeout(timeout);
-                        doc.body.removeChild(iframe);
-                    }, 300);
+                        timeout = setTimeout(function() {
+                            clearTimeout(timeout);
+                            doc.body.removeChild(iframe);
+                        }, 300);
+                    } catch (e) {
+                        if (_typeOf(_self.cfg.onError) === "Function") {
+                            _self.cfg.onError(res);
+                        }
+                    }
                 };
             };
         }
@@ -269,7 +281,7 @@
     function _createIframe() {
         var iframe = doc.createElement("iframe");
         iframe.name = "uploadIframe";
-        iframe.style.cssText = "width: 0;height: 0; opacity: 0; position: absolute; z-index: -1;left: -999em; top: -999em;"
+        iframe.style.cssText = "width: 0;height: 0; opacity: 0; position: absolute; z-index: -1;left: -999em; top: -999em;";
         doc.body.appendChild(iframe);
         return iframe;
     }
@@ -442,7 +454,7 @@
 
                 default:
                     break;
-            }            
+            }
         }
         return res;
     }
