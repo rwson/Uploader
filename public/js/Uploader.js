@@ -64,6 +64,10 @@
             this.el = doc.querySelector(el);
             this.elSelector = el;
             this.cfg = _merge(_defultCfg, opt);
+
+            if (this.el === "null") {
+                throw "can not initialize upload on element of null!" + el;
+            }
             switch (this.cfg.type) {
                 case "HTML5":
                     this._HTML5Upload();
@@ -74,7 +78,6 @@
                     break;
 
                 default:
-                    throw new Error("please pass in the correct type argument!");
                     break;
             }
         },
@@ -132,6 +135,10 @@
                 }
 
                 form = new FormData();
+
+                if (files.length < 1) {
+                    return;
+                }
 
                 //  拼接自定义数据
                 if (_typeOf(_self.cfg.data) === "Object") {
@@ -224,6 +231,10 @@
 
                     //  已经超时了,就不往下走
                     if (isOvertime) {
+                        timeout = setTimeout(function() {
+                            clearTimeout(timeout);
+                            doc.body.removeChild(iframe);
+                        }, 300);
                         return;
                     }
 
@@ -239,6 +250,10 @@
                             doc.body.removeChild(iframe);
                         }, 300);
                     } catch (e) {
+                        timeout = setTimeout(function() {
+                            clearTimeout(timeout);
+                            doc.body.removeChild(iframe);
+                        }, 300);
                         if (_typeOf(_self.cfg.onError) === "Function") {
                             _self.cfg.onError(res);
                         }
@@ -379,7 +394,11 @@
         if (_typeOf(str) === "Null") {
             res = {};
         } else {
-            res = JSON.parse(str.replace(preStart, "").replace(preEnd, ""));
+            try {
+                res = JSON.parse(str.replace(preStart, "").replace(preEnd, ""));
+            } catch (e) {
+                res = e;
+            }
         }
         return res;
     }
